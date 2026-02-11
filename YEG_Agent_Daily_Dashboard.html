@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YEG Home Search — Agent Daily Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1B3A5C;
+  --blue: #2E6B9E;
+  --sky: #4A9FD9;
+  --mint: #2ECC71;
+  --amber: #F5A623;
+  --coral: #E74C3C;
+  --bg: #F7F9FC;
+  --card: #FFFFFF;
+  --text: #1a2a3a;
+  --muted: #7B8FA3;
+  --border: #E8EDF3;
+  --glow: rgba(46,107,158,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+/* ── Header ── */
+.hero {
+  background: var(--navy);
+  color: #fff;
+  padding: 28px 24px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(74,159,217,0.25) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.hero-inner { max-width: 880px; margin: 0 auto; position: relative; z-index: 1; }
+.hero h1 { font-family: 'DM Serif Display', serif; font-size: 26px; font-weight: 400; letter-spacing: -0.3px; }
+.hero p { opacity: 0.75; font-size: 13px; margin-top: 2px; }
+.hero-stats { display: flex; gap: 20px; margin-top: 16px; flex-wrap: wrap; }
+.hero-stat {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 120px;
+  text-align: center;
+}
+.hero-stat .val { font-size: 24px; font-weight: 700; }
+.hero-stat .lbl { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+.time-display { font-size: 12px; opacity: 0.6; margin-top: 12px; }
+
+/* ── Layout ── */
+.wrap { max-width: 880px; margin: 0 auto; padding: 20px; }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--card); border-radius: 12px; padding: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 50; }
+.tab {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+}
+.tab:hover { color: var(--navy); background: var(--glow); }
+.tab.on { background: var(--navy); color: #fff; box-shadow: 0 2px 8px rgba(27,58,92,0.3); }
+.tab .emoji { font-size: 16px; display: block; margin-bottom: 2px; }
+
+/* ── Panels ── */
+.panel { display: none; animation: fadeUp 0.3s ease; }
+.panel.on { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s;
+}
+.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+.card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.card-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.card-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--navy); }
+.card-sub { font-size: 12px; color: var(--muted); }
+.priority-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 3px 10px; border-radius: 20px; margin-left: auto; }
+.p-critical { background: #FDEDEC; color: var(--coral); }
+.p-high { background: #FEF5E7; color: #D68910; }
+.p-medium { background: #EBF5FB; color: var(--blue); }
+.p-low { background: #EAFAF1; color: #27AE60; }
+
+/* ── Checklist Items ── */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #F3F5F8;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+.check:last-child { border-bottom: none; }
+.check.done { opacity: 0.4; }
+.check.done .check-text { text-decoration: line-through; }
+.check-box {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #CBD5E0;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 12px;
+  color: transparent;
+}
+.check.done .check-box { background: var(--mint); border-color: var(--mint); color: #fff; }
+.check-body { flex: 1; }
+.check-text { font-size: 14px; font-weight: 500; }
+.check-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.check-filter { font-size: 11px; color: var(--blue); background: #EBF5FB; padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; font-weight: 500; }
+.check-time { font-size: 11px; color: var(--muted); background: #F3F5F8; padding: 2px 8px; border-radius: 4px; margin-left: 4px; }
+
+/* ── Proactive Cards ── */
+.pro-card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--blue);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.pro-card:hover { border-left-color: var(--navy); box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+.pro-card.expanded .pro-detail { display: block; }
+.pro-head { display: flex; align-items: center; gap: 10px; }
+.pro-emoji { font-size: 22px; }
+.pro-title { font-weight: 600; font-size: 15px; color: var(--navy); flex: 1; }
+.pro-freq { font-size: 11px; background: #F3F5F8; padding: 2px 10px; border-radius: 12px; color: var(--muted); font-weight: 500; }
+.pro-arrow { color: var(--muted); transition: transform 0.2s; font-size: 14px; }
+.pro-card.expanded .pro-arrow { transform: rotate(90deg); }
+.pro-detail { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px solid #F3F5F8; }
+.pro-step { display: flex; gap: 10px; margin-bottom: 10px; }
+.pro-num { width: 24px; height: 24px; background: var(--navy); color: #fff; border-radius: 50%; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.pro-step-text { font-size: 13px; flex: 1; }
+.pro-step-text strong { color: var(--navy); }
+.pro-tip { background: #F0FAF4; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #2D6A4F; margin-top: 10px; }
+.pro-script { background: #F5F8FC; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--text); margin-top: 10px; font-style: italic; border-left: 3px solid var(--sky); }
+
+/* ── Routine Section ── */
+.routine-block { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
+.routine-time {
+  background: var(--navy);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: center;
+  margin-top: 2px;
+}
+.routine-content { flex: 1; }
+.routine-title { font-weight: 600; font-size: 14px; color: var(--navy); }
+.routine-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* ── Tag Pill ── */
+.tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; margin: 1px 2px; }
+.t-hot { background: #FDEDEC; color: #C0392B; }
+.t-warm { background: #FEF5E7; color: #D68910; }
+.t-act { background: #EBF5FB; color: #2E6B9E; }
+.t-sys { background: #EAECEE; color: #566573; }
+.t-grn { background: #EAFAF1; color: #27AE60; }
+
+/* ── Print ── */
+.print-btn { background: var(--navy); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; display: block; margin: 20px auto; transition: background 0.2s; }
+.print-btn:hover { background: var(--blue); }
+
+@media print {
+  .hero { position: static; }
+  .tabs, .print-btn { display: none; }
+  .panel { display: block !important; page-break-inside: avoid; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+@media (max-width: 600px) {
+  .hero h1 { font-size: 22px; }
+  .hero-stats { gap: 8px; }
+  .hero-stat { padding: 8px 12px; min-width: 90px; }
+  .tab { font-size: 11px; padding: 10px 4px; }
+  .card { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Agent Daily Dashboard</h1>
+    <p>YEG Home Search — Your daily game plan for converting leads</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val" id="tasksDone">0</div><div class="lbl">Tasks Done</div></div>
+      <div class="hero-stat"><div class="val" id="tasksTotal">0</div><div class="lbl">Total</div></div>
+      <div class="hero-stat"><div class="val" id="tasksPct">0%</div><div class="lbl">Complete</div></div>
+    </div>
+    <div class="time-display" id="timeDisplay"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" onclick="show(0)"><span class="emoji">🔥</span>Priority Tasks</button>
+    <button class="tab" onclick="show(1)"><span class="emoji">💪</span>Be Proactive</button>
+    <button class="tab" onclick="show(2)"><span class="emoji">🕐</span>Daily Routine</button>
+    <button class="tab" onclick="show(3)"><span class="emoji">📖</span>Quick Reference</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PANEL 0: PRIORITY TASKS -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="panel on" id="panel-0">
+
+    <!-- CRITICAL: Respond to Replies -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#FDEDEC">🚨</div>
+        <div><div class="card-title">Respond to Every Reply</div><div class="card-sub">Within 5 minutes — this is your #1 money maker</div></div>
+        <span class="priority-badge p-critical">Critical</span>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check "Priority: Just Replied" filter</div>
+          <div class="check-desc">Anyone who replied to a text, email, or action plan in the last 24 hours. Call or text back IMMEDIATELY.</div>
+          <span class="check-filter">Filter: Priority: Just Replied</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check Sierra notifications for inbound messages</div>
+          <div class="check-desc">Text replies, emails, missed calls. Every one of these is a warm lead signaling interest.</div>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">After every reply: Update tags + add note</div>
+          <div class="check-desc">Apply <span class="tag t-grn">Engaged: Replied</span> + update Temperature + Timeline based on conversation. Add a note: what did they say? What's next?</div>
+          <span class="check-time">⏱ 60 sec per lead</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HIGH: Hot Leads -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#FEF5E7">🔥</div>
+        <div><div class="card-title">Work Your Hot Leads</div><div class="card-sub">These are closest to a deal — daily attention required</div></div>
+        <span class="priority-badge p-high">High</span>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Review "Priority: Hot Leads" filter</div>
+          <div class="check-desc">Every lead tagged <span class="tag t-hot">Hot Lead</span> needs a touch today. Call, text, send a listing — do something.</div>
+          <span class="check-filter">Filter: Priority: Hot Leads</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check your Active leads (Status = Active)</div>
+          <div class="check-desc">These are people you're showing homes to. Confirm next showing, send a new listing, follow up on a property they liked.</div>
+          <span class="check-filter">Filter: Pipeline: Active</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check Pending deals</div>
+          <div class="check-desc">Any active offers or contracts in progress? Update status, follow up with other parties.</div>
+          <span class="check-filter">Filter: Pipeline: Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEDIUM: Opportunity Leads -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#EBF5FB">⚡</div>
+        <div><div class="card-title">Catch the Opportunity Leads</div><div class="card-sub">Leads signaling interest through behavior — strike while they're warm</div></div>
+        <span class="priority-badge p-medium">Medium</span>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check "Returned to Site" leads</div>
+          <div class="check-desc">These people came BACK to yeghomesearch.ca after being away. They're thinking about real estate again. Call within 30 minutes of the alert.</div>
+          <span class="check-filter">Filter: Opportunity: Returned to Site</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check "Saved Properties" leads</div>
+          <div class="check-desc">They saved a listing — that's a buying signal. Send them insider info about that property. "Hey, I noticed you saved [address] — want me to get you the full details?"</div>
+          <span class="check-filter">Filter: Opportunity: Saved Properties</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check "Active: Searching" leads</div>
+          <div class="check-desc">Leads browsing 3+ listings on your site. They're actively shopping. Perfect time for a "noticed you were searching" text.</div>
+          <span class="check-filter">Filter: Tag = Active: Searching</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOW: Follow-Ups & New Leads -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#EAFAF1">📋</div>
+        <div><div class="card-title">Follow-Ups & New Leads</div><div class="card-sub">Don't let these fall through the cracks</div></div>
+        <span class="priority-badge p-low">Standard</span>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check "Needs Follow-Up" filter</div>
+          <div class="check-desc">Leads tagged <span class="tag t-sys">System: Lead Not Contacted</span> — you were assigned these but haven't reached out in 24 hours. Manager has been notified.</div>
+          <span class="check-filter">Filter: Priority: Needs Follow-Up</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Check "New Today" leads</div>
+          <div class="check-desc">Any new registrations today? Speed-to-Lead is running, but a personal call within 5 minutes is 21x more likely to convert.</div>
+          <span class="check-filter">Filter: Pipeline: New Today</span>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">Complete all Sierra tasks</div>
+          <div class="check-desc">Check your task queue. Complete every task assigned by automations (call tasks, follow-up reminders).</div>
+        </div>
+      </div>
+      <div class="check" onclick="toggle(this)">
+        <div class="check-box">✓</div>
+        <div class="check-body">
+          <div class="check-text">60-second tag update on every lead you touched today</div>
+          <div class="check-desc">After every conversation: update Temperature, Timeline, add a note about what was discussed. This takes 60 seconds and keeps the CRM accurate.</div>
+          <span class="check-time">⏱ 60 sec per lead</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PANEL 1: BE PROACTIVE -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-1">
+
+    <div class="card" style="border-left: 4px solid var(--navy); background: linear-gradient(135deg, #F7F9FC, #EBF3FA);">
+      <div class="card-title" style="margin-bottom: 8px;">🧠 The Mindset</div>
+      <p style="font-size: 14px; color: var(--text);">Your priority tasks are <strong>reactive</strong> — responding to what's already happening. These proactive strategies are how you <strong>create</strong> opportunities. Top agents spend 30-60 minutes per day on proactive outreach after their priority tasks are done.</p>
+    </div>
+
+    <!-- Proactive Strategy 1 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">📱</span>
+        <span class="pro-title">The "Just Because" Check-In</span>
+        <span class="pro-freq">Daily • 15 min</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Pick 5 leads from your Qualify or Watch list and send a genuine, personal message. No pitch — just connection.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Filter: Status = Qualify</strong> or <strong>Status = Watch</strong></div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Pick 5 leads</strong> you haven't contacted in 7+ days</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Send a personal text</strong> — reference something specific about them</div></div>
+        <div class="pro-script">"Hey [Name], saw a house just hit the market in [their area] and thought of you. Have you been keeping an eye on things or taking a break? Either way, hope you're doing well!"</div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> Leads go cold because they feel forgotten. A personal check-in (not a template) reminds them there's a real human on the other end. 5 texts per day = 25 per week = 100 per month. Even a 5% reply rate gives you 5 fresh conversations per month.</div>
+      </div>
+    </div>
+
+    <!-- Proactive Strategy 2 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">🏠</span>
+        <span class="pro-title">The "Perfect Listing" Match</span>
+        <span class="pro-freq">Daily • 10 min</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Find a new listing that matches a specific lead's criteria and send it to them personally — not as an auto-alert, as a personal rec.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Browse new MLS listings</strong> that came on today</div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Think: which of my leads would love this?</strong> Check your Qualify and Active leads.</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Send a personal text with the listing link</strong></div></div>
+        <div class="pro-script">"[Name] — this just hit the market today in Windermere, 4 bed, backs onto the ravine. $485K. This feels like it might be your kind of place. Want me to book a showing before it gets busy?"</div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> Auto-alerts feel like spam. A hand-picked listing from their agent feels like VIP service. This is how you become the agent they WANT to work with.</div>
+      </div>
+    </div>
+
+    <!-- Proactive Strategy 3 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">📊</span>
+        <span class="pro-title">The "Market Update" Value Drop</span>
+        <span class="pro-freq">Weekly • 20 min</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Create a short, shareable market insight and send it to a segment of your database. Position yourself as the local market expert.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Pick one interesting market stat</strong> — a neighbourhood that spiked, a price change, a trend</div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Write a 3-sentence insight</strong> — what's happening, why it matters, what to do</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Text it to 10-15 Qualify/Watch/Active leads</strong> who would care about that area</div></div>
+        <div class="pro-script">"Quick market update: homes in [area] are selling 12% faster this month than last. If you're eyeing that area, the good ones are going in under a week. Let me know if you want me to set up instant alerts so you don't miss anything."</div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> You're providing value, not asking for anything. Leads start to see you as their trusted market resource. When they're ready, you're the first person they call.</div>
+      </div>
+    </div>
+
+    <!-- Proactive Strategy 4 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">⭐</span>
+        <span class="pro-title">The "Past Client Referral Ask"</span>
+        <span class="pro-freq">Weekly • 15 min</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Your past clients are your best lead source. Most agents never ask for referrals because it feels awkward. Here's how to make it natural.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Filter: Status = Closed</strong></div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Pick 3 past clients</strong> you had a great relationship with</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Send a check-in text</strong> — ask about the home first, referral second</div></div>
+        <div class="pro-script">"Hey [Name]! Just thinking about you — how's the new place treating you? Everything settling in okay? By the way, if anyone you know is thinking about buying or selling, I'd love to help them the way I helped you. No pressure at all 😊"</div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> Referrals close at 4x the rate of cold leads and cost you $0 in ad spend. 3 asks per week = 150 per year. Even a 3% conversion = 4-5 referral clients per year.</div>
+      </div>
+    </div>
+
+    <!-- Proactive Strategy 5 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">🧊</span>
+        <span class="pro-title">The "Cold Lead Resurrection" Call</span>
+        <span class="pro-freq">Daily • 15 min</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">The Cold Lead Pond re-engagement plan is running automatically, but a personal call can accelerate the process. Pick 3 cold leads and call them.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Filter: Status = Archived + Tag = Cold Lead</strong></div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Pick 3 leads</strong> — start with ones who have notes (you know something about them)</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Call them.</strong> If no answer, leave a voicemail and send a follow-up text.</div></div>
+        <div class="pro-script">"Hey [Name], this is [You] from YEG Home Search. I know it's been a while! I was looking at some activity in [their area] and wondered if you're still keeping an eye on the Edmonton market. Things have changed quite a bit — I'd love to give you a quick update when you have a minute. No worries if the timing isn't right!"</div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> 3 calls/day = 15/week = 60/month from your cold pond. Even a 5% re-engagement rate = 3 fresh conversations from leads you'd otherwise never hear from again. The re-engagement plan softens them up — your call seals the deal.</div>
+      </div>
+    </div>
+
+    <!-- Proactive Strategy 6 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">🎯</span>
+        <span class="pro-title">The "Open House Invite"</span>
+        <span class="pro-freq">Before each open house</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Hosting or attending an open house? Personally invite leads in that area. A personal invite converts 10x better than a mass blast.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Filter leads by the neighbourhood or area</strong> of the open house</div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Send a personal text to 10-20 leads</strong> in that area</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Follow up after</strong> with anyone who engaged</div></div>
+        <div class="pro-script">"[Name] — I'm hosting an open house this Saturday at [address] in [area], 1-3 PM. It's a [brief description]. Even if you're just curious about the neighbourhood, come check it out! Would love to see you there."</div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> Face-to-face time is the fastest way to build trust. Even leads who don't buy that house move forward in their journey when they walk through a real property.</div>
+      </div>
+    </div>
+
+    <!-- Proactive Strategy 7 -->
+    <div class="pro-card" onclick="this.classList.toggle('expanded')">
+      <div class="pro-head">
+        <span class="pro-emoji">📝</span>
+        <span class="pro-title">The "Notes & Pipeline Clean" Review</span>
+        <span class="pro-freq">Friday • 20 min</span>
+        <span class="pro-arrow">▶</span>
+      </div>
+      <div class="pro-detail">
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">End each week by reviewing your pipeline. Move leads that have gone quiet, celebrate your wins, plan next week.</p>
+        <div class="pro-step"><div class="pro-num">1</div><div class="pro-step-text"><strong>Review Active leads</strong> — anyone you haven't spoken to in 7+ days? Move to Watch or follow up.</div></div>
+        <div class="pro-step"><div class="pro-num">2</div><div class="pro-step-text"><strong>Review Qualify leads</strong> — anyone who responded this week? Update their tags and temperature.</div></div>
+        <div class="pro-step"><div class="pro-num">3</div><div class="pro-step-text"><strong>Count your wins</strong> — new conversations started, showings booked, offers submitted.</div></div>
+        <div class="pro-step"><div class="pro-num">4</div><div class="pro-step-text"><strong>Set 3 goals for next week</strong> — specific, measurable (e.g., "Book 2 showings", "Call 15 cold leads").</div></div>
+        <div class="pro-tip">💡 <strong>Why it works:</strong> What gets measured gets managed. A 20-minute weekly review prevents leads from silently dying in your pipeline and keeps your CRM data accurate for automations to work properly.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PANEL 2: DAILY ROUTINE -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#EBF5FB">☀️</div>
+        <div><div class="card-title">Morning Power Hour</div><div class="card-sub">8:00 AM – 9:00 AM • The hour that makes your day</div></div>
+      </div>
+      <div class="routine-block"><div class="routine-time">8:00</div><div class="routine-content"><div class="routine-title">Check replies & notifications</div><div class="routine-desc">Open Sierra → check Just Replied filter → respond to every message from overnight. This is your highest-ROI activity.</div></div></div>
+      <div class="routine-block"><div class="routine-time">8:15</div><div class="routine-content"><div class="routine-title">Review hot leads & active deals</div><div class="routine-desc">Open Hot Leads filter → Active filter → Pending filter. Plan your touches for each one today.</div></div></div>
+      <div class="routine-block"><div class="routine-time">8:30</div><div class="routine-content"><div class="routine-title">Check opportunity leads</div><div class="routine-desc">Returned to Site, Saved Properties, Active Searchers. Call or text anyone showing buying signals.</div></div></div>
+      <div class="routine-block"><div class="routine-time">8:45</div><div class="routine-content"><div class="routine-title">New leads & follow-ups</div><div class="routine-desc">New Today filter → Needs Follow-Up filter. Call new leads immediately. Follow up on anyone you missed yesterday.</div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#FEF5E7">💪</div>
+        <div><div class="card-title">Proactive Outreach Block</div><div class="card-sub">9:00 AM – 9:30 AM • Create your own opportunities</div></div>
+      </div>
+      <div class="routine-block"><div class="routine-time">9:00</div><div class="routine-content"><div class="routine-title">5 "Just Because" check-in texts</div><div class="routine-desc">Pick 5 Qualify/Watch leads → send a personal, non-template text to each one.</div></div></div>
+      <div class="routine-block"><div class="routine-time">9:15</div><div class="routine-content"><div class="routine-title">3 Cold Lead resurrection calls</div><div class="routine-desc">Pick 3 from your Cold Lead Pond → call → voicemail + follow-up text if no answer.</div></div></div>
+      <div class="routine-block"><div class="routine-time">9:25</div><div class="routine-content"><div class="routine-title">1 "Perfect Listing" match</div><div class="routine-desc">Find today's best new listing → match it to a specific lead → send personal recommendation.</div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#EAFAF1">🔄</div>
+        <div><div class="card-title">Throughout the Day</div><div class="card-sub">Ongoing • Stay responsive as leads come in</div></div>
+      </div>
+      <div class="routine-block"><div class="routine-time">Ongoing</div><div class="routine-content"><div class="routine-title">Respond to every notification within 5 minutes</div><div class="routine-desc">New lead? Call immediately. Reply from lead? Respond immediately. Saved property alert? Text about it. Speed wins.</div></div></div>
+      <div class="routine-block"><div class="routine-time">Ongoing</div><div class="routine-content"><div class="routine-title">60-second tag update after every conversation</div><div class="routine-desc">Talked to a lead? Update: Temperature (hot/warm/cold) + Timeline (0-3/3-6/6-12/12+) + Add a note about what was discussed.</div></div></div>
+      <div class="routine-block"><div class="routine-time">Lunch</div><div class="routine-content"><div class="routine-title">Quick filter check</div><div class="routine-desc">2 minutes: check Just Replied and New Today. Anything urgent that came in during the morning?</div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:#F5EEF8">🌙</div>
+        <div><div class="card-title">End of Day Wrap-Up</div><div class="card-sub">4:30 PM – 5:00 PM • Close the loop</div></div>
+      </div>
+      <div class="routine-block"><div class="routine-time">4:30</div><div class="routine-content"><div class="routine-title">Final reply check</div><div class="routine-desc">One last check of Just Replied filter. Don't leave anyone hanging overnight if you can help it.</div></div></div>
+      <div class="routine-block"><div class="routine-time">4:40</div><div class="routine-content"><div class="routine-title">Complete any remaining Sierra tasks</div><div class="routine-desc">Clear your task queue. Every open task = a lead that needs attention.</div></div></div>
+      <div class="routine-block"><div class="routine-time">4:50</div><div class="routine-content"><div class="routine-title">Tag audit: did you update every lead you touched today?</div><div class="routine-desc">Quick scroll through today's conversations. Every lead should have current tags and a fresh note.</div></div></div>
+      <div class="routine-block"><div class="routine-time">4:55</div><div class="routine-content"><div class="routine-title">Plan tomorrow's top 3 priorities</div><div class="routine-desc">Write down your 3 most important leads/tasks for tomorrow morning. Start tomorrow with a plan.</div></div></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- PANEL 3: QUICK REFERENCE -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="panel" id="panel-3">
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 14px;">🏷️ The 60-Second Tag Update</div>
+      <p style="font-size: 14px; margin-bottom: 12px;">After <strong>every single conversation</strong>, take 60 seconds to update these 3 things:</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+        <div style="background: #FDEDEC; border-radius: 10px; padding: 14px; text-align: center;">
+          <div style="font-size: 20px; margin-bottom: 4px;">🌡️</div>
+          <div style="font-weight: 700; font-size: 13px; color: var(--navy);">Temperature</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Hot → Warm → Cold<br>Based on their engagement</div>
+        </div>
+        <div style="background: #FEF5E7; border-radius: 10px; padding: 14px; text-align: center;">
+          <div style="font-size: 20px; margin-bottom: 4px;">📅</div>
+          <div style="font-weight: 700; font-size: 13px; color: var(--navy);">Timeline</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">0-3 / 3-6 / 6-12 / 12+<br>When are they moving?</div>
+        </div>
+        <div style="background: #EAFAF1; border-radius: 10px; padding: 14px; text-align: center;">
+          <div style="font-size: 20px; margin-bottom: 4px;">📝</div>
+          <div style="font-weight: 700; font-size: 13px; color: var(--navy);">Note</div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">What did they say?<br>What's the next step?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 14px;">📊 Filter Quick-Access Order</div>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Check these filters in this exact order every morning:</p>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <tr style="background: var(--navy); color: #fff;"><th style="padding: 8px 10px; text-align: left;">#</th><th style="padding: 8px;">Filter</th><th style="padding: 8px;">What You're Looking For</th><th style="padding: 8px;">Action</th></tr>
+        <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 700; color: var(--coral);">1</td><td style="padding: 8px;">Just Replied</td><td style="padding: 8px;">Anyone who responded</td><td style="padding: 8px;">Call/text back NOW</td></tr>
+        <tr style="border-bottom: 1px solid #eee; background: #fafbfc;"><td style="padding: 8px; font-weight: 700; color: var(--coral);">2</td><td style="padding: 8px;">Hot Leads</td><td style="padding: 8px;">Most engaged leads</td><td style="padding: 8px;">Daily touch</td></tr>
+        <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 700; color: var(--amber);">3</td><td style="padding: 8px;">Active Pipeline</td><td style="padding: 8px;">Showing/meeting leads</td><td style="padding: 8px;">Confirm next step</td></tr>
+        <tr style="border-bottom: 1px solid #eee; background: #fafbfc;"><td style="padding: 8px; font-weight: 700; color: var(--amber);">4</td><td style="padding: 8px;">Returned to Site</td><td style="padding: 8px;">Came back after being away</td><td style="padding: 8px;">Call within 30 min</td></tr>
+        <tr style="border-bottom: 1px solid #eee;"><td style="padding: 8px; font-weight: 700; color: var(--blue);">5</td><td style="padding: 8px;">Saved Properties</td><td style="padding: 8px;">Saved a listing</td><td style="padding: 8px;">Text about that listing</td></tr>
+        <tr style="border-bottom: 1px solid #eee; background: #fafbfc;"><td style="padding: 8px; font-weight: 700; color: var(--blue);">6</td><td style="padding: 8px;">Needs Follow-Up</td><td style="padding: 8px;">Assigned but not contacted</td><td style="padding: 8px;">Call today</td></tr>
+        <tr><td style="padding: 8px; font-weight: 700; color: #27AE60;">7</td><td style="padding: 8px;">New Today</td><td style="padding: 8px;">Fresh registrations</td><td style="padding: 8px;">Personal call</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 14px;">⚡ Daily Numbers to Hit</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+        <div style="background: #F7F9FC; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 28px; font-weight: 700; color: var(--navy);">5</div>
+          <div style="font-size: 12px; color: var(--muted);">Check-in texts to Qualify/Watch leads</div>
+        </div>
+        <div style="background: #F7F9FC; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 28px; font-weight: 700; color: var(--navy);">3</div>
+          <div style="font-size: 12px; color: var(--muted);">Cold lead resurrection calls</div>
+        </div>
+        <div style="background: #F7F9FC; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 28px; font-weight: 700; color: var(--navy);">1</div>
+          <div style="font-size: 12px; color: var(--muted);">Personal listing match sent</div>
+        </div>
+        <div style="background: #F7F9FC; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 28px; font-weight: 700; color: var(--navy);">&lt;5m</div>
+          <div style="font-size: 12px; color: var(--muted);">Response time to every reply</div>
+        </div>
+        <div style="background: #F7F9FC; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 28px; font-weight: 700; color: var(--navy);">100%</div>
+          <div style="font-size: 12px; color: var(--muted);">Leads tagged after every conversation</div>
+        </div>
+        <div style="background: #F7F9FC; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid var(--border);">
+          <div style="font-size: 28px; font-weight: 700; color: var(--navy);">0</div>
+          <div style="font-size: 12px; color: var(--muted);">Tasks left at end of day</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom: 14px;">🚫 The "Never Do" List</div>
+      <div style="font-size: 14px;">
+        <div style="padding: 8px 0; border-bottom: 1px solid #f3f5f8;">❌ <strong>Never</strong> let a reply sit more than 5 minutes during business hours</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f3f5f8;">❌ <strong>Never</strong> contact a Do Not Contact lead — check status first</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f3f5f8;">❌ <strong>Never</strong> skip the 60-second tag update after a conversation</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f3f5f8;">❌ <strong>Never</strong> manually stop an action plan without adding a note explaining why</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f3f5f8;">❌ <strong>Never</strong> change a lead's status without updating the matching Stage tag</div>
+        <div style="padding: 8px 0; border-bottom: 1px solid #f3f5f8;">❌ <strong>Never</strong> leave a lead in "New" for more than 14 days — the plan handles progression</div>
+        <div style="padding: 8px 0;">❌ <strong>Never</strong> send mass blast texts — every message should feel personal</div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="print-btn" onclick="window.print()">🖨️ Print This Dashboard</button>
+</div>
+
+<script>
+function show(n) {
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('on', i===n));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('on', i===n));
+}
+
+function toggle(el) {
+  el.classList.toggle('done');
+  updateStats();
+}
+
+function updateStats() {
+  const all = document.querySelectorAll('#panel-0 .check');
+  const done = document.querySelectorAll('#panel-0 .check.done');
+  const t = all.length, d = done.length;
+  document.getElementById('tasksDone').textContent = d;
+  document.getElementById('tasksTotal').textContent = t;
+  document.getElementById('tasksPct').textContent = t > 0 ? Math.round(d/t*100) + '%' : '0%';
+}
+
+function updateTime() {
+  const now = new Date();
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  document.getElementById('timeDisplay').textContent = now.toLocaleDateString('en-CA', opts);
+}
+
+updateStats();
+updateTime();
+setInterval(updateTime, 60000);
+</script>
+</body>
+</html>
